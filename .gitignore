@@ -15,10 +15,10 @@ managed_components/
 .vscode/ipch/
 .vscode/extension.json
 # Often, you want to ignore all of .vscode/ except for recommended shared files
-# .vscode/*
-# !.vscode/extensions.json
-# !.vscode/launch.json
-# !.vscode/tasks.json
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # macOS specific
 .DS_Store
