@@ -1,0 +1,32 @@
+@startuml
+title Manager Task State Machine
+
+skinparam shadowing false
+
+[*] --> AwakeCycle
+
+state AwakeCycle {
+  [*] --> CollectInputs
+
+  CollectInputs --> UpdateDisplay : new sensor data / wakeup
+  UpdateDisplay --> CheckLogTimer
+
+  CheckLogTimer --> AppendToBuffer : log interval elapsed
+  CheckLogTimer --> SleepPrepare : log interval not elapsed
+
+  AppendToBuffer --> CheckBufferFull
+  CheckBufferFull --> QueueFlashWrite : buffer full
+  CheckBufferFull --> SleepPrepare : buffer not full
+
+  QueueFlashWrite --> SleepPrepare
+}
+
+AwakeCycle --> LoggingStopped : partition full
+LoggingStopped --> UpdateDisplayError : show on OLED
+UpdateDisplayError --> NotifyUart : print warning
+NotifyUart --> SleepPrepare
+
+SleepPrepare --> LightSleep : no pending critical work
+LightSleep --> AwakeCycle : wake after 1 second
+
+@enduml

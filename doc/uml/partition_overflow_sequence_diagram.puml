@@ -1,0 +1,28 @@
+@startuml
+title Partition Full Scenario
+
+skinparam shadowing false
+
+participant "Manager Task" as Manager
+participant "Flash Writer Task" as Flash
+participant "Flash Partition" as Part
+participant "UART Task" as UART
+participant "Display Task" as Display
+participant "SSD1306" as OLED
+
+Manager -> Flash : send full RAM block
+Flash -> Part : check next sector availability
+
+alt no free sector left
+  Flash -> Manager : PARTITION_FULL
+  Manager -> Manager : logging_enabled = false
+  Manager -> UART : print warning
+  Manager -> Display : show "LOG FULL"
+  Display -> OLED : render warning
+else sector available
+  Flash -> Part : erase sector
+  Flash -> Part : write data
+  Flash -> Manager : WRITE_OK
+end
+
+@enduml

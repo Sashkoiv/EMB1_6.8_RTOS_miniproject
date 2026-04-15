@@ -1,0 +1,50 @@
+@startuml
+title One Wake Cycle (1 second)
+
+skinparam shadowing false
+
+participant "Manager Task" as Manager
+participant "Sensor Task" as Sensor
+participant "BME280" as BME
+participant "DS1306" as RTC
+participant "sensor_queue" as SQ
+participant "Display Task" as Display
+participant "SSD1306" as OLED
+participant "RAM Buffer" as RAM
+participant "flash_queue" as FQ
+participant "Flash Writer Task" as Flash
+participant "Flash Partition" as Part
+participant "UART Task" as UART
+
+Manager -> Sensor : trigger / allow sampling
+Sensor -> BME : read temperature, humidity, pressure
+Sensor -> RTC : read timestamp
+Sensor -> SQ : send log_record_t
+
+Manager -> SQ : receive log_record_t
+Manager -> Display : send latest snapshot
+Display -> OLED : update values on screen
+
+alt log interval elapsed
+  Manager -> RAM : append record
+  alt RAM buffer full
+    Manager -> FQ : send full block
+    Flash -> FQ : receive block
+    Flash -> Part : erase sector
+    Flash -> Part : write sector
+
+    alt partition full
+      Flash -> Manager : logging_full
+      Manager -> UART : print "Logging stopped: flash full"
+      Manager -> Display : show "LOG FULL"
+      Display -> OLED : update warning
+    else write ok
+      Flash -> Manager : success
+    end
+  end
+end
+
+Manager -> Manager : enter light sleep for 1 second
+Manager -> Manager : wake up
+
+@enduml

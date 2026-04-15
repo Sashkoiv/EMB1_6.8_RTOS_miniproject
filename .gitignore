@@ -1,0 +1,35 @@
+# PlatformIO local build files and libraries
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# ESP-IDF specific
+sdkconfig
+sdkconfig.*
+!sdkconfig.defaults
+managed_components/
+
+# VS Code specific
+.vscode/.browse.vc.db
+.vscode/.bridge.vc.db
+.vscode/ipch/
+.vscode/extension.json
+# Often, you want to ignore all of .vscode/ except for recommended shared files
+# .vscode/*
+# !.vscode/extensions.json
+# !.vscode/launch.json
+# !.vscode/tasks.json
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Other temporary files
+*.swp
+*.bak
+*~

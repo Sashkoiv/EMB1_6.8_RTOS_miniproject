@@ -1,0 +1,55 @@
+@startuml
+title Main Data Structures
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+class log_record_t {
+  +uint16_t year
+  +uint8_t month
+  +uint8_t day
+  +uint8_t hour
+  +uint8_t minute
+  +uint8_t second
+  +int16_t temperature_c_x100
+  +uint16_t humidity_pct_x100
+  +uint16_t pressure_mmhg
+}
+
+class flash_block_t {
+  +log_record_t records[RECORDS_PER_SECTOR]
+  +uint16_t count
+}
+
+class display_snapshot_t {
+  +uint16_t year
+  +uint8_t month
+  +uint8_t day
+  +uint8_t hour
+  +uint8_t minute
+  +uint8_t second
+  +int16_t temperature_c_x100
+  +uint16_t humidity_pct_x100
+  +uint16_t pressure_mmhg
+  +bool logging_enabled
+  +bool partition_full
+}
+
+class uart_command_t {
+  +command_type_t type
+  +int32_t argument
+}
+
+class system_status_t {
+  +bool logging_enabled
+  +bool partition_full
+  +uint32_t seconds_since_last_log
+  +uint32_t write_offset
+}
+
+flash_block_t *-- log_record_t
+display_snapshot_t ..> log_record_t
+system_status_t ..> flash_block_t
+uart_command_t ..> system_status_t
+
+@enduml

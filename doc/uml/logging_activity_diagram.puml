@@ -1,0 +1,25 @@
+@startuml
+title Logging Policy
+
+start
+
+:Wake every 1 second;
+:Read BME280 and DS1306;
+:Update display every wake cycle;
+
+if (logging enabled?) then (yes)
+  if (log interval elapsed?) then (yes)
+    :Append record to RAM buffer;
+    if (RAM buffer full?) then (yes)
+      :Send block to Flash Writer Task;
+    else (no)
+    endif
+  else (no)
+  endif
+else (no)
+endif
+
+:Enter light sleep for 1 second;
+stop
+
+@enduml

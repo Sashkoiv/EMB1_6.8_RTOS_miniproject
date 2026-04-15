@@ -1,0 +1,45 @@
+@startuml
+title RTOS Data Flow
+
+left to right direction
+skinparam shadowing false
+
+actor User
+
+rectangle "Sensor Task" as Sensor
+rectangle "UART Task" as Uart
+rectangle "Manager Task" as Manager
+rectangle "Display Task" as Display
+rectangle "Flash Writer Task" as Flash
+
+queue "sensor_queue" as SQ
+queue "command_queue" as CQ
+queue "display_queue" as DQ
+queue "flash_queue" as FQ
+
+database "RAM buffer\n1 sector" as RB
+database "Flash partition" as FP
+
+User --> Uart : UART commands
+
+Sensor --> SQ : log_record_t
+Uart --> CQ : uart_command_t
+
+SQ --> Manager : sensor samples
+CQ --> Manager : parsed commands
+
+Manager --> DQ : display_snapshot_t
+DQ --> Display : latest values/status
+
+Manager --> RB : append record\nonly every LOG_INTERVAL_MINUTES
+RB --> Manager : block full
+
+Manager --> FQ : flash_block_t
+FQ --> Flash : block to store
+Flash --> FP : erase sector\nwrite sector
+
+Flash --> Manager : result/status
+Manager --> DQ : "logging stopped"\nif partition full
+Manager --> Uart : print status/errors
+
+@enduml

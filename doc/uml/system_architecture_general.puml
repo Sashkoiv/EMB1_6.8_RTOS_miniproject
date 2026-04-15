@@ -1,0 +1,61 @@
+@startuml
+title Power-aware Logger with RTOS - System Architecture
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "Hardware" {
+  [ESP32-S3]
+  [BME280]
+  [DS1306 RTC]
+  [SSD1306 OLED]
+  [UART Terminal]
+  [Internal Flash Partition]
+}
+
+package "RTOS Tasks" {
+  [Sensor Task]
+  [Manager Task]
+  [Display Task]
+  [UART Task]
+  [Flash Writer Task]
+}
+
+package "RTOS Objects" {
+  queue "sensor_queue" as sensor_queue
+  queue "command_queue" as command_queue
+  queue "display_queue" as display_queue
+  queue "flash_queue" as flash_queue
+
+  database "RAM Log Buffer\n(1 flash sector)" as ram_buffer
+  collections "I2C Mutex" as i2c_mutex
+}
+
+[Sensor Task] --> [BME280] : read measurements
+[Sensor Task] --> [DS1306 RTC] : read timestamp
+[Sensor Task] ..> i2c_mutex : lock/unlock if shared bus
+[Display Task] ..> i2c_mutex : lock/unlock
+[Display Task] --> [SSD1306 OLED] : update screen
+
+[UART Task] --> [UART Terminal] : RX/TX commands
+
+[Sensor Task] --> sensor_queue : log_record_t
+[UART Task] --> command_queue : uart_command_t
+
+[Manager Task] --> sensor_queue : receive
+[Manager Task] --> command_queue : receive
+[Manager Task] --> display_queue : send display snapshot
+[Manager Task] --> ram_buffer : append log record\nwhen logging time elapsed
+[Manager Task] --> flash_queue : send full sector block
+
+[Display Task] --> display_queue : receive
+[Flash Writer Task] --> flash_queue : receive
+[Flash Writer Task] --> [Internal Flash Partition] : erase + write sector
+
+[Manager Task] --> [ESP32-S3] : enter light sleep 1s
+[ESP32-S3] --> [Manager Task] : wake up
+
+[Flash Writer Task] --> [UART Terminal] : "Partition full"
+[Display Task] --> [SSD1306 OLED] : show "Log Full"
+
+@enduml
